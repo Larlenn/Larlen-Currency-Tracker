@@ -1,0 +1,46 @@
+## Interface: 120000
+## Title: Larlen Currency Tracker
+## Notes: Larlen Currency Tracker - Track currencies across your characters
+## Author: Larlen
+## Version: 1.0.0
+## SavedVariablesPerCharacter: LarlenCurrencyTrackerDB
+## SavedVariables: LarlenCurrencyTrackerProfiles
+## IconTexture: 463446
+## OptionalDeps: Ace3, LibDataBroker-1.1, LibDBIcon-1.0
+## Category-enUS: Inventory
+## Category-deDE: Inventar
+## Category-esES: Inventario
+## Category-esMX: Inventario
+## Category-frFR: Inventaire
+## Category-itIT: Inventario
+## Category-koKR: 소지품
+## Category-ptBR: Inventário
+## Category-ruRU: Предметы
+## Category-zhCN: 物品栏
+## Category-zhTW: 物品欄
+
+# LibStub - single lua, no xml
+libs\LibStub\LibStub.lua
+
+# CallbackHandler - single lua, no xml
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+
+# Ace libs - use .xml where it exists to load sub-modules correctly
+libs\AceAddon-3.0\AceAddon-3.0.xml
+libs\AceEvent-3.0\AceEvent-3.0.xml
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.lua
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceConfig-3.0\AceConfig-3.0.xml
+
+# DataBroker libs
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibDBIcon-1.0\lib.xml
+
+# Addon files - Display and Config MUST load before LarlenCurrencyTracker.lua
+# because OnInitialize calls CT.Display and CT.Config immediately
+CurrencyDB.lua
+Display.lua
+Config.lua
+LarlenCurrencyTracker.lua
