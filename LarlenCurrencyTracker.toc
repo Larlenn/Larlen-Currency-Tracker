@@ -3,6 +3,7 @@
 ## Notes: Larlen Currency Tracker - Track currencies across your characters
 ## Author: Larlen
 ## Version: 1.0.0
+## X-Curse-Project-ID: 1480289
 ## SavedVariablesPerCharacter: LarlenCurrencyTrackerDB
 ## SavedVariables: LarlenCurrencyTrackerProfiles
 ## IconTexture: 463446
