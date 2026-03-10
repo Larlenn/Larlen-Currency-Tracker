@@ -1,14 +1,5 @@
 # Larlen Currency Tracker
 
-**INSPIRED BY THE ORIGINAL CREATOR** This addon is purely a vibe-coded passion project. It is a clean, configurable currency display inspired by the popular "Complete Currency and Item Tracker" WeakAura by Bixxy. It was built as a proper standalone addon for players who want the same great functionality, bringing the popular tracker back to life now that WeakAuras no longer exist!
-
-This project takes heavy inspiration from:
-* **Original WeakAura:** [Complete Currency and Item Tracker by Bixxy](https://wago.io/XcSiJkldg)
-
-Please go give them love! Without their brilliant original work, this wouldn't exist.
-
----
-
 ## What Does It Do?
 Track only the currencies that matter to you, displayed in a compact, movable window. 
 
@@ -34,3 +25,12 @@ Here is what you can expect:
 * `/lct lock` - Locks the frame position
 * `/lct unlock` - Unlocks the frame position
 * `/lct minimap` - Toggles the minimap button on or off
+
+---
+
+**INSPIRED BY THE ORIGINAL CREATOR** This addon is purely a vibe-coded passion project. It is a clean, configurable currency display inspired by the popular "Complete Currency and Item Tracker" WeakAura by Bixxy. It was built as a proper standalone addon for players who want the same great functionality, bringing the popular tracker back to life now that WeakAuras no longer exist!
+
+This project takes heavy inspiration from:
+* **Original WeakAura:** [Complete Currency and Item Tracker by Bixxy](https://wago.io/XcSiJkldg)
+
+Please go give them love! Without their brilliant original work, this wouldn't exist.

@@ -63,8 +63,8 @@ end
 
 function addon:OnEnable()
     self:RegisterEvent("BAG_UPDATE",               "OnDataChanged")
-    self:RegisterEvent("BANKFRAME_OPENED",          "OnDataChanged")
-    self:RegisterEvent("BANKFRAME_CLOSED",          "OnDataChanged")
+    self:RegisterEvent("BANKFRAME_OPENED",          "OnBankOpened")
+    self:RegisterEvent("BANKFRAME_CLOSED",          "OnBankClosed")
     self:RegisterEvent("CURRENCY_DISPLAY_UPDATE",   "OnDataChanged")
     self:RegisterEvent("PLAYER_ENTERING_WORLD",     "OnEnteringWorld")
     self:RegisterEvent("PLAYER_REGEN_DISABLED",     "OnCombatChanged")
@@ -84,6 +84,15 @@ end
 -- ============================================================
 -- Events
 -- ============================================================
+function addon:OnBankOpened()
+    CT.Display:OnBankOpened()
+    CT.Display:Refresh(self.db)
+end
+
+function addon:OnBankClosed()
+    CT.Display:OnBankClosed(self.db)
+end
+
 function addon:OnEnteringWorld()
     self:DiscoverCurrencies()
     CT.Display:UpdateVisibility(self.db)
@@ -102,7 +111,7 @@ local _tickerRunning = false
 function addon:StartVisibilityTicker()
     if _tickerRunning then return end
     _tickerRunning = true
-    C_Timer.NewTicker(0.2, function()
+    C_Timer.NewTicker(0.1, function()
         CT.Display:UpdateVisibility(CT.addon.db)
     end)
 end

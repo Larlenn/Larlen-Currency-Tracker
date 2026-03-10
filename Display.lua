@@ -234,6 +234,17 @@ function Display:ApplyPosition(db)
     end
 end
 
+function Display:OnBankOpened()
+    Display:UpdateVisibility(CT.addon.db)
+end
+
+function Display:OnBankClosed(db)
+    if mainFrame then mainFrame:Hide() end
+    C_Timer.After(0.15, function()
+        Display:UpdateVisibility(db)
+    end)
+end
+
 -- ============================================================
 -- UpdateVisibility
 -- ============================================================
