@@ -504,7 +504,7 @@ local _ldb_data = {
             LibStub("AceConfigDialog-3.0"):Open("LarlenCurrencyTracker")
         elseif btn == "RightButton" then
             if IsShiftKeyDown() then
-                LarlenCurrencyTrackerDB.hide = true
+                LarlenCurrencyTrackerCharDB.hide = true
                 if Display.ldbi and Display.ldbi:IsRegistered("LarlenCurrencyTracker") then
                     Display.ldbi:Hide("LarlenCurrencyTracker")
                 end
@@ -537,13 +537,13 @@ Display.ldbi = LibStub("LibDBIcon-1.0")
 Display.ldb  = _ldb
 
 function Display:RegisterMinimapButton()
-    LarlenCurrencyTrackerDB = LarlenCurrencyTrackerDB or {}
-    if LarlenCurrencyTrackerDB.hide == nil then
-        LarlenCurrencyTrackerDB.hide = false
+    LarlenCurrencyTrackerCharDB = LarlenCurrencyTrackerCharDB or {}
+    if LarlenCurrencyTrackerCharDB.hide == nil then
+        LarlenCurrencyTrackerCharDB.hide = false
     end
     C_Timer.After(0, function()
         if self.ldbi and not self.ldbi:IsRegistered("LarlenCurrencyTracker") then
-            self.ldbi:Register("LarlenCurrencyTracker", self.ldb, LarlenCurrencyTrackerDB)
+            self.ldbi:Register("LarlenCurrencyTracker", self.ldb, LarlenCurrencyTrackerCharDB)
         end
         Display:SyncMinimapVisibility()
     end)
@@ -551,7 +551,7 @@ end
 
 function Display:SyncMinimapVisibility()
     if not self.ldbi or not self.ldbi:IsRegistered("LarlenCurrencyTracker") then return end
-    if LarlenCurrencyTrackerDB and LarlenCurrencyTrackerDB.hide then
+    if LarlenCurrencyTrackerCharDB and LarlenCurrencyTrackerCharDB.hide then
         self.ldbi:Hide("LarlenCurrencyTracker")
     else
         self.ldbi:Show("LarlenCurrencyTracker")
@@ -559,8 +559,8 @@ function Display:SyncMinimapVisibility()
 end
 
 function Display:ToggleMinimap()
-    LarlenCurrencyTrackerDB = LarlenCurrencyTrackerDB or {}
-    LarlenCurrencyTrackerDB.hide = not LarlenCurrencyTrackerDB.hide
+    LarlenCurrencyTrackerCharDB = LarlenCurrencyTrackerCharDB or {}
+    LarlenCurrencyTrackerCharDB.hide = not LarlenCurrencyTrackerCharDB.hide
     Display:SyncMinimapVisibility()
-    return not LarlenCurrencyTrackerDB.hide
+    return not LarlenCurrencyTrackerCharDB.hide
 end

@@ -1,5 +1,9 @@
 # Larlen Currency Tracker Changelog
 
+## v1.0.2
+- Settings are now shared account-wide across all characters.
+  Note: existing saved settings will reset once on first login after updating.
+  
 ## v1.0.1
 - Fixed currency tracker remaining visible when closing the bank out of range while bags were open.
 - Added Lock Position toggle to the Position & Attachment options panel.

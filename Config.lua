@@ -29,11 +29,11 @@ function Config:Setup(db)
                 order = 3, type = "toggle", name = "Show Minimap Button",
                 desc  = "Show or hide the minimap button. Saved per character.",
                 get = function()
-                    return not (LarlenCurrencyTrackerDB and LarlenCurrencyTrackerDB.hide)
+                    return not (LarlenCurrencyTrackerCharDB and LarlenCurrencyTrackerCharDB.hide)
                 end,
                 set = function(_, v)
-                    LarlenCurrencyTrackerDB = LarlenCurrencyTrackerDB or {}
-                    LarlenCurrencyTrackerDB.hide = not v
+                    LarlenCurrencyTrackerCharDB = LarlenCurrencyTrackerCharDB or {}
+                    LarlenCurrencyTrackerCharDB.hide = not v
                     CT.Display:SyncMinimapVisibility()
                 end,
             },
