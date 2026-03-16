@@ -1,4 +1,4 @@
-## Interface: 120000
+## Interface: 120001
 ## Title: Larlen Currency Tracker
 ## Notes: Larlen Currency Tracker - Track currencies across your characters
 ## Author: Larlen

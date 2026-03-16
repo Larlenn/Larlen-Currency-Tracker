@@ -54,7 +54,7 @@ local defaults = {
 -- Lifecycle
 -- ============================================================
 function addon:OnInitialize()
-    self.db = LibStub("AceDB-3.0"):New("LarlenCurrencyTrackerDB", defaults, true)
+    self.db = LibStub("AceDB-3.0"):New("LarlenCurrencyTrackerDB", defaults, "Default")
     self:RegisterChatCommand("lct", "SlashHandler")
     self:RegisterChatCommand("larlenct", "SlashHandler")
     CT.Config:Setup(self.db)
