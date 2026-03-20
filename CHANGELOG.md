@@ -1,27 +1,23 @@
-# Larlen Overload Tracker Changelog
+# Larlen Currency Tracker Changelog
 
 ## v1.0.3
-- Fixed skinning icon showing when Sharpen Your Knife buff is active but no charges remain.
-- Fixed minimap button not appearing in HidingBar and other broker addons.
-- Fixed Lua errors caused by secret number taint from C_Spell.GetSpellCharges in certain dungeon encounters.
-- Fixed Lua errors caused by Blizzard's secret string type on tooltip lines in certain dungeons.
+- Fixed settings not persisting across characters.
 
 ## v1.0.2
-- Added cursor offset X/Y sliders to options panel.
-- Added Test Icon button to preview icon position live from options.
-
+- Settings are now shared account-wide across all characters.
+  Note: existing saved settings will reset once on first login after updating.
+  
 ## v1.0.1
-- Initial public release fixes and polish.
+- Fixed currency tracker remaining visible when closing the bank out of range while bags were open.
+- Added Lock Position toggle to the Position & Attachment options panel.
+- Added /lct lock and /lct unlock slash commands to quickly toggle frame lock.
 
 ## v1.0.0 - Initial Release
-- Cursor-following icon that appears when mousing over an eligible overload node.
-- Supports Mining, Herbalism, and Skinning for Dragonflight, The War Within, and Midnight.
-- Midnight node detection via tooltip name lookup with full node name database.
-- Skinning detection via tooltip type line.
-- Charge counter displayed on icon when more than one charge is available.
-- Per-module toggles to enable or disable each expansion and profession individually.
-- Minimap button with left-click to open options, right-click to hide.
-- Combat-safe: options panel queues to open after combat ends.
-- Zone and spell caching to keep the tooltip hot path allocation-free.
-
-**Credits:** All original credit to **Markiv** for the Overload Reminder WeakAura that inspired this addon.
+- Currency tracking with per-expansion grouping from Midnight down to Vanilla.
+- Attach to Bags, Character Sheet, or float Always Visible anywhere on screen.
+- Frame auto-shows and hides with the panel it is attached to.
+- Midnight currencies and Trader's Tender enabled by default, everything else opt-in.
+- Toggle individual currencies on or off in the options panel.
+- Font picker with LibSharedMedia support for 50+ fonts when ElvUI or similar is installed.
+- Minimap button with left-click to open options, right-click to toggle display.
+- Full options panel via /lct options.

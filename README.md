@@ -1,35 +1,36 @@
-# Larlen Overload Tracker
+# Larlen Currency Tracker
 
 ## What Does It Do?
+Track only the currencies that matter to you, displayed in a compact, movable window. 
 
-Shows the Overload/Sharpen spell icon on your cursor the moment you mouse over an eligible gathering node. No more checking your buffs or spell book — if the icon is there, you have a charge ready to use.
-
-Supports Mining, Herbalism, and Skinning across Midnight and previous expansions.
+You will no longer need to dig through your messy currencies panel hunting for the ones you actually use. You can easily attach it to your bags or character sheet so your tracked currencies are always exactly where you need them.
 
 ---
 
 ## Core Features
+We took the core idea of the original tracker and built it into a fully fleshed-out, standalone user experience. 
 
-* **Cursor Tracking:** The icon follows your cursor in real time and disappears the moment you move away from an eligible node.
-* **Charge Counter:** Displays remaining charges on the icon when you have more than one available.
-* **Per-Module Toggles:** Enable or disable tracking individually for each expansion and profession. Only track what you actually have learned.
-* **Appearance:** Adjustable icon size, opacity, and cursor offset X/Y so you can place the icon exactly where you want it relative to your cursor.
-* **Test Icon:** Preview the icon position live from the options panel without needing to be near a node.
-* **Minimap Button:** Draggable minimap button for quick access to settings.
+Here is what you can expect:
+* **Display & Attachment:** Attach to your Bags, Character Sheet, or float Always Visible anywhere on screen. The frame automatically shows and hides with the panel it's attached to. You can drag to reposition, lock the frame when you're happy with the placement, and even reverse the row direction for a right-to-left layout.
+* **Currencies:** Tracks all currencies your character has discovered, organized by expansion from The War Within and Midnight down to Vanilla. *Midnight currencies and Trader's Tender are enabled by default*—everything else is completely opt-in. Easily toggle individual currencies on or off in the options.
+* **Text & Appearance:** Color the text by item quality and shorten names to initials or first letters to save space. You have full control over adjustable icon size, row spacing, frame opacity, and background styling.
+* **Sorting:** Sort your list by name, amount, or ID. You can also group them by expansion or sort across all of your currencies together.
 
 ---
 
 ## 💬 Chat Commands
 
-* `/lot` - Opens the options panel
-* `/lot minimap` - Toggles the minimap button on or off
-* `/lot reset` - Wipes all saved settings and reloads
+* `/lct` - Shows the currency window (Always Visible mode only)
+* `/lct options` - Opens the options panel
+* `/lct lock` - Locks the frame position
+* `/lct unlock` - Unlocks the frame position
+* `/lct minimap` - Toggles the minimap button on or off
 
 ---
 
-**INSPIRED BY THE ORIGINAL CREATOR** This addon is purely a vibe-coded passion project. It is a clean, configurable cursor tracker inspired by the popular Overload Reminder WeakAura by Markiv. It was built as a proper standalone addon for players who want the same great functionality, bringing the popular tracker back to life now that WeakAuras no longer exist!
+**INSPIRED BY THE ORIGINAL CREATOR** This addon is purely a vibe-coded passion project. It is a clean, configurable currency display inspired by the popular "Complete Currency and Item Tracker" WeakAura by Bixxy. It was built as a proper standalone addon for players who want the same great functionality, bringing the popular tracker back to life now that WeakAuras no longer exist!
 
 This project takes heavy inspiration from:
-* **Original WeakAura:** [Overload Reminder by Markiv](https://wago.io/j2pds1Qy0)
+* **Original WeakAura:** [Complete Currency and Item Tracker by Bixxy](https://wago.io/XcSiJkldg)
 
 Please go give them love! Without their brilliant original work, this wouldn't exist.
