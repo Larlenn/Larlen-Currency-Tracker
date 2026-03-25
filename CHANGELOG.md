@@ -1,5 +1,8 @@
 # Larlen Currency Tracker Changelog
 
+## 1.0.4
+- Fixed libs packaging.
+
 ## v1.0.3
 - Fixed settings not persisting across characters.
 
