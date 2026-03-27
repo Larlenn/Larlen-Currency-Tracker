@@ -1,5 +1,11 @@
 # Larlen Currency Tracker Changelog
 
+## v2.0.0
+- Reworked currency selection UI in the options panel.
+- Fixed warband currencies not showing on characters that haven't personally earned them.
+- Added missing currencies and removed outdated ones.
+- Internal code cleanup.
+
 ## 1.0.4
 - Fixed libs packaging.
 

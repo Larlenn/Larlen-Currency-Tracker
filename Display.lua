@@ -1,6 +1,3 @@
--- Display.lua
--- Main display frame, minimap broker, and UI panel anchoring
-
 local _, CT = ...
 CT.Display = {}
 local Display = CT.Display
@@ -8,13 +5,55 @@ local Display = CT.Display
 local mainFrame     = nil
 local rowFrames     = {}
 local userDismissed = false
+local PRIMARY_ORDER = { "Mid", "Delve", "PvP", "Misc" }
+local LEGACY_ORDER = { "TWW", "DF", "SL", "BFA", "Leg", "WoD", "MoP", "Cata", "WotLK", "BC" }
+local BUILTIN_FONTS = {
+    ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
+    ["Arial Narrow"]     = "Fonts\\ARIALN.TTF",
+    ["Skurri"]           = "Fonts\\skurri.ttf",
+    ["Morpheus"]         = "Fonts\\MORPHEUS.ttf",
+    ["Adventure Normal"] = "Fonts\\MORPHEUS.ttf",
+    ["Expressway"]       = "Fonts\\ARIALN.TTF",
+    ["PT Sans Narrow"]   = "Fonts\\ARIALN.TTF",
+}
+local OUTLINE_MAP = {
+    ["none"]       = "",
+    ["outline"]    = "OUTLINE",
+    ["thick"]      = "THICKOUTLINE",
+    ["monochrome"] = "OUTLINE, MONOCHROME",
+}
 
--- ============================================================
--- Attach-to modes
--- BAGS      = show beside bag, only when a bag is open
--- SCREEN    = always visible, free float
--- CHARACTER = anchor to right of CharacterFrame, show only when open
--- ============================================================
+local function RowOnEnter(self)
+    if self.isHeader then
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Click to expand or collapse", 1, 1, 1)
+        GameTooltip:Show()
+        return
+    end
+    local row = self.rowData
+    if not row then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    if row.type == "anima" or row.type == "stygia" then
+        GameTooltip:SetText(row.name, 1, 1, 1)
+        GameTooltip:AddLine("Total: " .. row.count, 1, 0.82, 0)
+    else
+        GameTooltip:SetCurrencyByID(row.id)
+    end
+    GameTooltip:Show()
+end
+
+local function RowOnLeave()
+    GameTooltip:Hide()
+end
+
+local function RowOnMouseUp(self, btn)
+    if btn ~= "LeftButton" then return end
+    if not self.isHeader then return end
+    if not self.stateTable or not self.stateKey or not self.db then return end
+    self.stateTable[self.stateKey] = not self.stateTable[self.stateKey]
+    Display:Refresh(self.db)
+end
+
 local ATTACH_TARGETS = {
     BAGS      = { label = "Bags" },
     SCREEN    = { label = "Always Visible" },
@@ -26,10 +65,6 @@ local PANEL_FRAMES = {
     CHARACTER = "CharacterFrame",
 }
 
--- ============================================================
--- Bag frame detection
--- Supports: ElvUI bag, Blizzard combined bag, legacy separate bags
--- ============================================================
 local function GetOpenBagFrame()
     local elvBag = _G["ElvUI_ContainerFrame"]
     if elvBag and elvBag:IsShown() then return elvBag end
@@ -65,9 +100,6 @@ local function IsPanelOpen(attachTo)
     return f and f:IsShown()
 end
 
--- ============================================================
--- Build the main frame (called once on enable)
--- ============================================================
 function Display:BuildFrame(db)
     if mainFrame then return end
 
@@ -141,15 +173,11 @@ function Display:BuildFrame(db)
     Display:SyncLock(db)
 end
 
--- ============================================================
--- SyncButtons
--- ============================================================
 function Display:SyncButtons(db)
     if not mainFrame then return end
     local disp = db.profile.display
     local rev  = disp.reverseDirection
 
-    -- X button only shown in SCREEN mode; bags/character auto-hide the frame
     local showClose = disp.showCloseButton and (disp.attachTo == "SCREEN")
 
     local closeBtn = mainFrame.closeBtn
@@ -184,9 +212,6 @@ function Display:SyncButtons(db)
     end
 end
 
--- ============================================================
--- SyncLock: enable/disable frame dragging
--- ============================================================
 function Display:SyncLock(db)
     if not mainFrame then return end
     if db.profile.display.locked then
@@ -198,9 +223,6 @@ function Display:SyncLock(db)
     end
 end
 
--- ============================================================
--- Apply position / anchoring
--- ============================================================
 function Display:ApplyPosition(db)
     if not mainFrame then return end
     local disp = db.profile.display
@@ -245,9 +267,6 @@ function Display:OnBankClosed(db)
     end)
 end
 
--- ============================================================
--- UpdateVisibility
--- ============================================================
 function Display:UpdateVisibility(db)
     if not mainFrame then return end
     local disp = db.profile.display
@@ -281,15 +300,86 @@ function Display:UpdateVisibility(db)
     end
 end
 
--- ============================================================
--- Refresh: rebuild all visible rows
--- ============================================================
 function Display:Refresh(db)
     if not mainFrame then return end
     if not mainFrame:IsShown() then return end
 
     local disp = db.profile.display
     local rows = CT:GetRows(db)
+    db.profile.categoryState = db.profile.categoryState or {}
+    local state = db.profile.categoryState
+
+    local function EnsureState(stateKey, defaultOpen)
+        if state[stateKey] == nil then
+            state[stateKey] = defaultOpen
+        end
+    end
+
+    local visibleRows = {}
+    local showCategories = disp.showCategories == true
+    if showCategories then
+        local byExp = {}
+        for _, row in ipairs(rows) do
+            local expKey = row.expKey or "Misc"
+            byExp[expKey] = byExp[expKey] or {}
+            byExp[expKey][#byExp[expKey] + 1] = row
+        end
+
+        local function AddHeader(stateKey, label, indent, defaultOpen)
+            EnsureState(stateKey, defaultOpen)
+            visibleRows[#visibleRows + 1] = {
+                type = "header",
+                stateKey = stateKey,
+                label = label,
+                indent = indent or 0,
+            }
+            return state[stateKey]
+        end
+        local function AddCurrencies(list)
+            for _, r in ipairs(list) do
+                visibleRows[#visibleRows + 1] = r
+            end
+        end
+
+        for _, expKey in ipairs(PRIMARY_ORDER) do
+            local list = byExp[expKey]
+            if list and #list > 0 then
+                local expData = LarlenCurrencyTrackerExpansions[expKey]
+                local isOpen = AddHeader("cat_" .. expKey, expData and expData.label or expKey, 0, true)
+                if isOpen then
+                    AddCurrencies(list)
+                end
+            end
+        end
+
+        local hasLegacy = false
+        for _, expKey in ipairs(LEGACY_ORDER) do
+            local list = byExp[expKey]
+            if list and #list > 0 then
+                hasLegacy = true
+                break
+            end
+        end
+        if hasLegacy then
+            local legacyOpen = AddHeader("cat_Legacy", "Legacy", 0, false)
+            if legacyOpen then
+                for _, expKey in ipairs(LEGACY_ORDER) do
+                    local list = byExp[expKey]
+                    if list and #list > 0 then
+                        local expData = LarlenCurrencyTrackerExpansions[expKey]
+                        local childOpen = AddHeader("cat_legacy_" .. expKey, expData and expData.label or expKey, 1, false)
+                        if childOpen then
+                            AddCurrencies(list)
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for _, row in ipairs(rows) do
+            visibleRows[#visibleRows + 1] = row
+        end
+    end
 
     for _, rf in ipairs(rowFrames) do rf:Hide() end
 
@@ -302,6 +392,7 @@ function Display:Refresh(db)
     local padRight   = 10
     local maxWidth   = 180
     local rev        = disp.reverseDirection
+    local shownRows  = 0
 
     if mainFrame.titleText then
         mainFrame.titleText:ClearAllPoints()
@@ -314,13 +405,16 @@ function Display:Refresh(db)
         end
     end
 
-    for i, row in ipairs(rows) do
+    for i, row in ipairs(visibleRows) do
         local rf = rowFrames[i]
         if not rf then
             rf = CreateFrame("Frame", nil, mainFrame)
             rf.icon  = rf:CreateTexture(nil, "ARTWORK")
             rf.count = rf:CreateFontString(nil, "OVERLAY", "GameFontNormal")
             rf.name  = rf:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+            rf:SetScript("OnEnter", RowOnEnter)
+            rf:SetScript("OnLeave", RowOnLeave)
+            rf:SetScript("OnMouseUp", RowOnMouseUp)
             rowFrames[i] = rf
         end
 
@@ -329,130 +423,132 @@ function Display:Refresh(db)
         rf:ClearAllPoints()
         rf:SetPoint("TOPLEFT", mainFrame, "TOPLEFT",
             padLeft, -(padTop + (i - 1) * (iconSize + rowSpacing)))
+        rf.rowData = row
+        rf.db = db
 
-        if disp.showIcon then
-            rf.icon:SetTexture(row.icon)
-            rf.icon:SetSize(iconSize, iconSize)
-            rf.icon:ClearAllPoints()
-            if rev then
-                rf.icon:SetPoint("RIGHT", rf, "RIGHT", 0, 0)
-            else
-                rf.icon:SetPoint("LEFT", rf, "LEFT", 0, 0)
-            end
-            rf.icon:Show()
-        else
-            rf.icon:Hide()
-        end
-
-        local iconOffset  = disp.showIcon and (iconSize + 4) or 0
-        local rawCount    = CT:FormatCount(row.count, row.max, db)
-        local shortMode   = disp.nameShorten or 0
-        local displayName = CT:ShortenName(row.name, shortMode)
-        local countStr    = (disp.colorize and row.color) and WrapTextInColorCode(rawCount, row.color) or rawCount
-        local nameStr     = (disp.colorize and row.color) and WrapTextInColorCode(displayName, row.color) or displayName
+        local iconOffset = 0
+        local rowW = 0
 
         local fontPath
         local LSM     = LibStub and LibStub("LibSharedMedia-3.0", true)
         local fontKey = disp.font or "Friz Quadrata TT"
         if LSM then fontPath = LSM:Fetch("font", fontKey) end
         if not fontPath then
-            local builtinFonts = {
-                ["Friz Quadrata TT"] = "Fonts\\FRIZQT__.TTF",
-                ["Arial Narrow"]     = "Fonts\\ARIALN.TTF",
-                ["Skurri"]           = "Fonts\\skurri.ttf",
-                ["Morpheus"]         = "Fonts\\MORPHEUS.ttf",
-                ["Adventure Normal"] = "Fonts\\MORPHEUS.ttf",
-                ["Expressway"]       = "Fonts\\ARIALN.TTF",
-                ["PT Sans Narrow"]   = "Fonts\\ARIALN.TTF",
-            }
-            fontPath = builtinFonts[fontKey] or "Fonts\\FRIZQT__.TTF"
+            fontPath = BUILTIN_FONTS[fontKey] or "Fonts\\FRIZQT__.TTF"
         end
 
-        local outlineMap = {
-            ["none"]       = "",
-            ["outline"]    = "OUTLINE",
-            ["thick"]      = "THICKOUTLINE",
-            ["monochrome"] = "OUTLINE, MONOCHROME",
-        }
-        local outlineFlag = outlineMap[disp.fontOutline or "outline"] or "OUTLINE"
+        local outlineFlag = OUTLINE_MAP[disp.fontOutline or "outline"] or "OUTLINE"
 
         rf.count:SetFont(fontPath, fontSize, outlineFlag)
         rf.name:SetFont(fontPath, fontSize, outlineFlag)
         rf.count:ClearAllPoints()
         rf.name:ClearAllPoints()
 
-        local layout = disp.textLayout
-        if not rev then
-            if layout == 1 then
-                rf.count:SetText(countStr .. " " .. displayName)
-                rf.name:SetText("")
-                rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
-            elseif layout == 2 then
-                rf.count:SetText(displayName .. " " .. countStr)
-                rf.name:SetText("")
-                rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
-            elseif layout == 3 then
-                rf.count:SetText(countStr)
-                rf.name:SetText("")
-                rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
-            elseif layout == 4 then
-                rf.count:SetText(countStr)
-                rf.name:SetText(nameStr)
-                rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
-                rf.name:SetPoint("LEFT", rf.count, "RIGHT", 6, 0)
-            elseif layout == 5 then
-                rf.name:SetText(nameStr)
-                rf.count:SetText(countStr)
-                rf.name:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
-                rf.count:SetPoint("LEFT", rf.name, "RIGHT", 6, 0)
+        if row.type == "header" then
+            rf.isHeader = true
+            rf.stateTable = state
+            rf.stateKey = row.stateKey
+            rf.icon:Hide()
+            local indentOffset = (row.indent or 0) * 14
+            local marker = state[row.stateKey] and "[-]" or "[+]"
+            local headerText = marker .. " " .. row.label
+            rf.count:SetText("|cffffd200" .. headerText .. "|r")
+            rf.name:SetText("")
+            if not rev then
+                rf.count:SetPoint("LEFT", rf, "LEFT", indentOffset, 0)
+            else
+                rf.count:SetPoint("RIGHT", rf, "RIGHT", -indentOffset, 0)
             end
+            rowW = indentOffset + rf.count:GetStringWidth() + padLeft + padRight
         else
-            if layout == 1 then
-                rf.count:SetText(displayName .. " " .. countStr)
-                rf.name:SetText("")
-                rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
-            elseif layout == 2 then
-                rf.count:SetText(countStr .. " " .. displayName)
-                rf.name:SetText("")
-                rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
-            elseif layout == 3 then
-                rf.count:SetText(countStr)
-                rf.name:SetText("")
-                rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
-            elseif layout == 4 then
-                rf.count:SetText(countStr)
-                rf.name:SetText(nameStr)
-                rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
-                rf.name:SetPoint("RIGHT", rf.count, "LEFT", -6, 0)
-            elseif layout == 5 then
-                rf.name:SetText(nameStr)
-                rf.count:SetText(countStr)
-                rf.name:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
-                rf.count:SetPoint("RIGHT", rf.name, "LEFT", -6, 0)
+            rf.isHeader = false
+            rf.stateTable = nil
+            rf.stateKey = nil
+            if disp.showIcon then
+                rf.icon:SetTexture(row.icon)
+                rf.icon:SetSize(iconSize, iconSize)
+                rf.icon:ClearAllPoints()
+                if rev then
+                    rf.icon:SetPoint("RIGHT", rf, "RIGHT", 0, 0)
+                else
+                    rf.icon:SetPoint("LEFT", rf, "LEFT", 0, 0)
+                end
+                rf.icon:Show()
+            else
+                rf.icon:Hide()
             end
+
+            iconOffset  = disp.showIcon and (iconSize + 4) or 0
+            local rawCount    = CT:FormatCount(row.count, row.max, db)
+            local shortMode   = disp.nameShorten or 0
+            local displayName = CT:ShortenName(row.name, shortMode)
+            local countStr    = (disp.colorize and row.color) and WrapTextInColorCode(rawCount, row.color) or rawCount
+            local nameStr     = (disp.colorize and row.color) and WrapTextInColorCode(displayName, row.color) or displayName
+
+            local layout = disp.textLayout
+            if not rev then
+                if layout == 1 then
+                    rf.count:SetText(countStr .. " " .. displayName)
+                    rf.name:SetText("")
+                    rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
+                elseif layout == 2 then
+                    rf.count:SetText(displayName .. " " .. countStr)
+                    rf.name:SetText("")
+                    rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
+                elseif layout == 3 then
+                    rf.count:SetText(countStr)
+                    rf.name:SetText("")
+                    rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
+                elseif layout == 4 then
+                    rf.count:SetText(countStr)
+                    rf.name:SetText(nameStr)
+                    rf.count:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
+                    rf.name:SetPoint("LEFT", rf.count, "RIGHT", 6, 0)
+                elseif layout == 5 then
+                    rf.name:SetText(nameStr)
+                    rf.count:SetText(countStr)
+                    rf.name:SetPoint("LEFT", rf, "LEFT", iconOffset, 0)
+                    rf.count:SetPoint("LEFT", rf.name, "RIGHT", 6, 0)
+                end
+            else
+                if layout == 1 then
+                    rf.count:SetText(displayName .. " " .. countStr)
+                    rf.name:SetText("")
+                    rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
+                elseif layout == 2 then
+                    rf.count:SetText(countStr .. " " .. displayName)
+                    rf.name:SetText("")
+                    rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
+                elseif layout == 3 then
+                    rf.count:SetText(countStr)
+                    rf.name:SetText("")
+                    rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
+                elseif layout == 4 then
+                    rf.count:SetText(countStr)
+                    rf.name:SetText(nameStr)
+                    rf.count:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
+                    rf.name:SetPoint("RIGHT", rf.count, "LEFT", -6, 0)
+                elseif layout == 5 then
+                    rf.name:SetText(nameStr)
+                    rf.count:SetText(countStr)
+                    rf.name:SetPoint("RIGHT", rf, "RIGHT", -iconOffset, 0)
+                    rf.count:SetPoint("RIGHT", rf.name, "LEFT", -6, 0)
+                end
+            end
+            rowW = iconOffset + rf.count:GetStringWidth() + 6 + rf.name:GetStringWidth() + padLeft + padRight
         end
 
         rf:EnableMouse(true)
-        local capturedRow = row
-        rf:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            if capturedRow.type == "anima" or capturedRow.type == "stygia" then
-                GameTooltip:SetText(capturedRow.name, 1, 1, 1)
-                GameTooltip:AddLine("Total: " .. capturedRow.count, 1, 0.82, 0)
-            else
-                GameTooltip:SetCurrencyByID(capturedRow.id)
-            end
-            GameTooltip:Show()
-        end)
-        rf:SetScript("OnLeave", function() GameTooltip:Hide() end)
-
-        local rowW = iconOffset + rf.count:GetStringWidth() + 6 + rf.name:GetStringWidth() + padLeft + padRight
         if rowW > maxWidth then maxWidth = rowW end
-        rf:SetWidth(maxWidth)
+        shownRows = i
         rf:Show()
     end
 
-    local totalHeight = padTop + #rows * (iconSize + rowSpacing) + padBottom
+    for i = 1, shownRows do
+        rowFrames[i]:SetWidth(maxWidth)
+    end
+
+    local totalHeight = padTop + #visibleRows * (iconSize + rowSpacing) + padBottom
     mainFrame:SetSize(maxWidth + padLeft + padRight, totalHeight)
 
     if disp.background then
@@ -466,7 +562,6 @@ function Display:Refresh(db)
     Display:SyncButtons(db)
     Display:SyncLock(db)
 end
--- ============================================================
 function Display:Show()
     if mainFrame then
         userDismissed = false
@@ -492,9 +587,6 @@ function Display:Toggle()
     end
 end
 
--- ============================================================
--- DataBroker + Minimap Icon
--- ============================================================
 local _ldb_data = {
     type  = "launcher",
     label = "Larlen Currency Tracker",

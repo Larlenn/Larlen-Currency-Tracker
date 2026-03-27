@@ -1,6 +1,3 @@
--- Config.lua
--- AceConfig options table and registration
-
 local _, CT = ...
 CT.Config = {}
 local Config = CT.Config
@@ -12,7 +9,6 @@ function Config:Setup(db)
         type    = "group",
         args    = {
 
-            -- ── General ───────────────────────────────────────────
             generalHeader = {
                 order = 1, type = "header", name = "General",
             },
@@ -56,7 +52,6 @@ function Config:Setup(db)
                 end,
             },
 
-            -- ── Appearance ────────────────────────────────────────
             appearanceHeader = {
                 order = 10, type = "header", name = "Appearance",
             },
@@ -119,7 +114,7 @@ function Config:Setup(db)
             },
             showCloseButton = {
                 order = 17, type = "toggle", name = "Show Close Button (X)",
-                desc  = "Show or hide the X button. Only applies in Always Visible mode — in Bags and Character Sheet modes the frame auto-hides, so the X is not shown.",
+                desc  = "Show or hide the X button. Only applies in Always Visible mode - in Bags and Character Sheet modes the frame auto-hides, so the X is not shown.",
                 get   = function() return db.profile.display.showCloseButton end,
                 set   = function(_, v)
                     db.profile.display.showCloseButton = v
@@ -136,7 +131,6 @@ function Config:Setup(db)
                 end,
             },
 
-            -- ── Text Format ───────────────────────────────────────
             textHeader = {
                 order = 20, type = "header", name = "Text Formatting",
             },
@@ -202,10 +196,19 @@ function Config:Setup(db)
             },
             reverseDirection = {
                 order = 21.5, type = "toggle", name = "Reverse Row Direction",
-                desc  = "Flip the entire row so it reads right-to-left.\nDefault: icon → count → name\nReversed: name → count → icon",
+                desc  = "Flip the entire row so it reads right-to-left.\nDefault: icon -> count -> name\nReversed: name -> count -> icon",
                 get   = function() return db.profile.display.reverseDirection end,
                 set   = function(_, v)
                     db.profile.display.reverseDirection = v
+                    CT.Display:Refresh(db)
+                end,
+            },
+            showCategories = {
+                order = 21.55, type = "toggle", name = "Display Categories",
+                desc  = "Show collapsible category headers in the tracker window.",
+                get   = function() return db.profile.display.showCategories == true end,
+                set   = function(_, v)
+                    db.profile.display.showCategories = v
                     CT.Display:Refresh(db)
                 end,
             },
@@ -251,7 +254,6 @@ function Config:Setup(db)
                 end,
             },
 
-            -- ── Sorting ───────────────────────────────────────────
             sortHeader = {
                 order = 30, type = "header", name = "Sorting",
             },
@@ -274,7 +276,6 @@ function Config:Setup(db)
                 end,
             },
 
-            -- ── Position / Attach ─────────────────────────────────
             posHeader = {
                 order = 40, type = "header", name = "Position & Attachment",
             },
@@ -299,7 +300,7 @@ function Config:Setup(db)
                         db.profile.display.relPoint = "TOPRIGHT"
                         db.profile.display.x        = 4
                         db.profile.display.y        = 0
-                    else -- BAGS
+                    else
                         db.profile.display.point    = "TOPRIGHT"
                         db.profile.display.relPoint = "TOPLEFT"
                         db.profile.display.x        = -4
@@ -343,7 +344,6 @@ function Config:Setup(db)
                 end,
             },
 
-            -- ── Currencies to Display ─────────────────────────────
             currencyHeader = {
                 order = 60, type = "header", name = "Currencies to Display",
             },
@@ -352,9 +352,9 @@ function Config:Setup(db)
                 name  = "Toggle individual currencies on or off. Only currencies your character has discovered will appear. Reload options after visiting a new currency source.",
             },
             currencies = {
-                order = 62, type = "group", name = "Currencies",
+                order = 62, type = "group", name = "",
                 inline = true,
-                args   = {},  -- populated dynamically below
+                args   = {},
             },
         },
     }
@@ -367,54 +367,37 @@ function Config:Setup(db)
     AceConfigDialog:SetDefaultSize("LarlenCurrencyTracker", 820, 650)
 end
 
--- ============================================================
--- Currency toggles grouped by expansion
--- ============================================================
 function Config:PopulateCurrencyToggles(args, db)
-    local expKeys = {}
-    for k, _ in pairs(LarlenCurrencyTrackerExpansions) do
-        expKeys[#expKeys + 1] = k
-    end
-    table.sort(expKeys, function(a, b)
-        local la = LarlenCurrencyTrackerExpansions[a].letter
-        local lb = LarlenCurrencyTrackerExpansions[b].letter
-        local isMiscA = (a == "Misc" or a == "PvP")
-        local isMiscB = (b == "Misc" or b == "PvP")
-        if isMiscA and not isMiscB then return true  end
-        if isMiscB and not isMiscA then return false end
-        if isMiscA and isMiscB then return a == "Misc" end
-        return la < lb
-    end)
-
-    local discovered = {}
+    db.profile.categoryState = db.profile.categoryState or {}
+    local state = db.profile.categoryState
+    local discoveredInfo = {}
     local numCurrencies = C_CurrencyInfo.GetCurrencyListSize()
     for i = 1, numCurrencies do
         local entry = C_CurrencyInfo.GetCurrencyListInfo(i)
         if entry and not entry.isHeader and entry.currencyID then
-            local info = C_CurrencyInfo.GetCurrencyInfo(entry.currencyID)
-            if info and info.discovered then
-                discovered[entry.currencyID] = info.name or ("Currency " .. entry.currencyID)
+            if not (LarlenCurrencyTrackerHiddenCurrencyIDs and LarlenCurrencyTrackerHiddenCurrencyIDs[entry.currencyID]) then
+                local info = C_CurrencyInfo.GetCurrencyInfo(entry.currencyID)
+                if CT:IsCurrencyDiscoveredForDisplay(entry.currencyID, info) then
+                    local name = info.name or ("Currency " .. entry.currencyID)
+                    local expKey = LarlenCurrencyTrackerGetExpansionKey(entry.currencyID, name)
+                    discoveredInfo[entry.currencyID] = { name = name, expKey = expKey }
+                end
             end
         end
     end
 
-    local order = 1
-
-    for _, expKey in ipairs(expKeys) do
-        local expData  = LarlenCurrencyTrackerExpansions[expKey]
-        local expLabel = expData.label
-
+    local function GetExpansionItems(expKey)
         local expCurrencies = {}
-        for id, data in pairs(LarlenCurrencyTrackerCurrencies) do
-            if data.expansion == expKey and discovered[id] then
-                expCurrencies[#expCurrencies + 1] = { id = id, name = discovered[id], found = true }
+        for id, item in pairs(discoveredInfo) do
+            if item.expKey == expKey then
+                expCurrencies[#expCurrencies + 1] = { id = id, name = item.name, found = true }
             end
         end
         table.sort(expCurrencies, function(a, b) return a.name < b.name end)
 
         local dbOnly = {}
         for id, data in pairs(LarlenCurrencyTrackerCurrencies) do
-            if data.expansion == expKey and not discovered[id] then
+            if (not LarlenCurrencyTrackerHiddenCurrencyIDs or not LarlenCurrencyTrackerHiddenCurrencyIDs[id]) and data.expansion == expKey and not discoveredInfo[id] then
                 dbOnly[#dbOnly + 1] = { id = id, name = data.name, found = false }
             end
         end
@@ -422,60 +405,134 @@ function Config:PopulateCurrencyToggles(args, db)
 
         local allExp = {}
         for _, v in ipairs(expCurrencies) do allExp[#allExp + 1] = v end
-        for _, v in ipairs(dbOnly)        do allExp[#allExp + 1] = v end
+        for _, v in ipairs(dbOnly) do allExp[#allExp + 1] = v end
+        return allExp
+    end
 
-        if #allExp > 0 then
-            args["header_exp_" .. expKey] = {
-                order = order, type = "header", name = expLabel,
-            }
-            order = order + 1
+    local function EnsureState(stateKey, defaultOpen)
+        if state[stateKey] == nil then
+            state[stateKey] = defaultOpen
+        end
+    end
 
-            for _, item in ipairs(allExp) do
-                local key  = tostring(item.id)
-                local desc = item.found
-                    and ("Show or hide " .. item.name .. ".")
-                    or  (item.name .. " — not yet discovered on this character.")
-                args["currency_" .. key] = {
-                    order = order, type = "toggle",
-                    name  = item.found and item.name or ("|cff888888" .. item.name .. "|r"),
-                    desc  = desc,
-                    get   = function() return db.profile.currencies[key] == true end,
-                    set   = function(_, v)
-                        db.profile.currencies[key] = v
-                        CT.Display:Refresh(db)
+    local function NotifyOptionsChanged()
+        local registry = LibStub("AceConfigRegistry-3.0", true)
+        if registry then
+            registry:NotifyChange("LarlenCurrencyTracker")
+        end
+    end
+
+    local function AddCurrencyToggle(order, item, hiddenFn)
+        local key  = tostring(item.id)
+        local desc = item.found
+            and ("Show or hide " .. item.name .. ".")
+            or (item.name .. " - not yet discovered on this character.")
+        args["currency_" .. key] = {
+            order = order,
+            type = "toggle",
+            name  = item.found and item.name or ("|cff888888" .. item.name .. "|r"),
+            desc  = desc,
+            hidden = hiddenFn,
+            get   = function() return db.profile.currencies[key] == true end,
+            set   = function(_, v)
+                db.profile.currencies[key] = v
+                CT.Display:Refresh(db)
+            end,
+        }
+        return order + 1
+    end
+
+    local function BuildToggleIcon(isOpen)
+        if isOpen then
+            return "|TInterface\\Buttons\\UI-MinusButton-Up:14:14:0:0|t"
+        end
+        return "|TInterface\\Buttons\\UI-PlusButton-Up:14:14:0:0|t"
+    end
+
+    local order = 1
+    local primaryOrder = { "Mid", "Delve", "PvP", "Misc" }
+    for _, expKey in ipairs(primaryOrder) do
+        local expData = LarlenCurrencyTrackerExpansions[expKey]
+        if expData then
+            local items = GetExpansionItems(expKey)
+            if #items > 0 then
+                local stateKey = "cat_" .. expKey
+                EnsureState(stateKey, true)
+                args["dropdown_" .. expKey] = {
+                    order = order,
+                    type = "execute",
+                    width = "full",
+                    name = function()
+                        return BuildToggleIcon(state[stateKey]) .. " " .. expData.label
+                    end,
+                    func = function()
+                        state[stateKey] = not state[stateKey]
+                        NotifyOptionsChanged()
                     end,
                 }
                 order = order + 1
+                for _, item in ipairs(items) do
+                    order = AddCurrencyToggle(order, item, function()
+                        return not state[stateKey]
+                    end)
+                end
             end
         end
     end
 
-    local unknownIDs = {}
-    for id, name in pairs(discovered) do
-        if not LarlenCurrencyTrackerCurrencies[id] then
-            unknownIDs[#unknownIDs + 1] = { id = id, name = name }
+    local legacyExpansions = { "TWW", "DF", "SL", "BFA", "Leg", "WoD", "MoP", "Cata", "WotLK", "BC" }
+    local legacySections = {}
+    for _, expKey in ipairs(legacyExpansions) do
+        local items = GetExpansionItems(expKey)
+        if #items > 0 then
+            legacySections[#legacySections + 1] = { expKey = expKey, items = items }
         end
     end
-    table.sort(unknownIDs, function(a, b) return a.name < b.name end)
 
-    if #unknownIDs > 0 then
-        args["header_other"] = {
-            order = order, type = "header", name = "Uncategorised",
+    if #legacySections > 0 then
+        local legacyStateKey = "cat_Legacy"
+        EnsureState(legacyStateKey, false)
+        args["dropdown_legacy"] = {
+            order = order,
+            type = "execute",
+            width = "full",
+            name = function()
+                return BuildToggleIcon(state[legacyStateKey]) .. " Legacy"
+            end,
+            func = function()
+                state[legacyStateKey] = not state[legacyStateKey]
+                NotifyOptionsChanged()
+            end,
         }
         order = order + 1
-        for _, item in ipairs(unknownIDs) do
-            local key = tostring(item.id)
-            args["currency_" .. key] = {
-                order = order, type = "toggle",
-                name  = item.name,
-                desc  = "Show or hide " .. item.name .. " (ID " .. key .. ").",
-                get   = function() return db.profile.currencies[key] == true end,
-                set   = function(_, v)
-                    db.profile.currencies[key] = v
-                    CT.Display:Refresh(db)
+
+        for _, legacySection in ipairs(legacySections) do
+            local expKey = legacySection.expKey
+            local expData = LarlenCurrencyTrackerExpansions[expKey]
+            local childStateKey = "cat_legacy_" .. expKey
+            EnsureState(childStateKey, false)
+            args["dropdown_legacy_" .. expKey] = {
+                order = order,
+                type = "execute",
+                width = "full",
+                name = function()
+                    return "    " .. BuildToggleIcon(state[childStateKey]) .. " " .. expData.label
+                end,
+                hidden = function()
+                    return not state[legacyStateKey]
+                end,
+                func = function()
+                    state[childStateKey] = not state[childStateKey]
+                    NotifyOptionsChanged()
                 end,
             }
             order = order + 1
+
+            for _, item in ipairs(legacySection.items) do
+                order = AddCurrencyToggle(order, item, function()
+                    return not state[legacyStateKey] or not state[childStateKey]
+                end)
+            end
         end
     end
 end

@@ -1,46 +1,21 @@
--- CurrencyDB.lua
--- Static database of known currencies, mapped to their expansion.
--- This allows categorisation and filtering even before a character has discovered them.
--- Expansions are sorted newest → oldest via the sortLetter field.
---
--- To add new currencies: add an entry to LarlenCurrencyTrackerDB_Currencies below.
--- Format: [currencyID] = { expansion = "TAG", name = "Readable Name" }
--- Expansion tags and their display order:
---   Mid  = Midnight          (A)
---   TWW  = The War Within    (B)
---   DF   = Dragonflight      (C)
---   SL   = Shadowlands       (D)
---   BFA  = Battle for Azeroth(E)
---   Leg  = Legion            (F)
---   WoD  = Warlords of Draenor(G)
---   MoP  = Mists of Pandaria  (H)
---   Cata = Cataclysm          (I)
---   WotLK= Wrath of the Lich King(J)
---   BC   = The Burning Crusade(K)
---   Misc = Miscellaneous      (L)
---   PvP  = PvP                (M)
-
 LarlenCurrencyTrackerExpansions = {
     Mid   = { letter = "A", label = "Midnight" },
-    TWW   = { letter = "B", label = "The War Within" },
-    DF    = { letter = "C", label = "Dragonflight" },
-    SL    = { letter = "D", label = "Shadowlands" },
-    BFA   = { letter = "E", label = "Battle for Azeroth" },
-    Leg   = { letter = "F", label = "Legion" },
-    WoD   = { letter = "G", label = "Warlords of Draenor" },
-    MoP   = { letter = "H", label = "Mists of Pandaria" },
-    Cata  = { letter = "I", label = "Cataclysm" },
-    WotLK = { letter = "J", label = "Wrath of the Lich King" },
-    BC    = { letter = "K", label = "The Burning Crusade" },
-    Misc  = { letter = "L", label = "Miscellaneous" },
-    PvP   = { letter = "M", label = "PvP" },
+    PvP   = { letter = "B", label = "PvP" },
+    Misc  = { letter = "C", label = "Miscellaneous" },
+    Delve = { letter = "D", label = "Delve" },
+    TWW   = { letter = "E", label = "The War Within" },
+    DF    = { letter = "F", label = "Dragonflight" },
+    SL    = { letter = "G", label = "Shadowlands" },
+    BFA   = { letter = "H", label = "Battle for Azeroth" },
+    Leg   = { letter = "I", label = "Legion" },
+    WoD   = { letter = "J", label = "Warlords of Draenor" },
+    MoP   = { letter = "K", label = "Mists of Pandaria" },
+    Cata  = { letter = "L", label = "Cataclysm" },
+    WotLK = { letter = "M", label = "Wrath of the Lich King" },
+    BC    = { letter = "N", label = "The Burning Crusade" },
 }
 
 LarlenCurrencyTrackerCurrencies = {
-
-    -- ══════════════════════════════════════════════════════════
-    -- MIDNIGHT
-    -- ══════════════════════════════════════════════════════════
     [3376] = { expansion = "Mid", name = "Shard of Dundun" },
     [3377] = { expansion = "Mid", name = "Unalloyed Abundance" },
     [3385] = { expansion = "Mid", name = "Luminous Dust" },
@@ -60,15 +35,9 @@ LarlenCurrencyTrackerCurrencies = {
     [3262] = { expansion = "Mid", name = "Artisan Jewelcrafter's Moxie" },
     [3261] = { expansion = "Mid", name = "Artisan Scribe's Moxie" },
     [3259] = { expansion = "Mid", name = "Artisan Engineer's Moxie" },
-    [3158] = { expansion = "Mid", name = "Midnight Mining Knowledge" },
-    [3154] = { expansion = "Mid", name = "Midnight Herbalism Knowledge" },
     [3373] = { expansion = "Mid", name = "Angler Pearls" },
     [3352] = { expansion = "Mid", name = "Party Favor" },
-    [3349] = { expansion = "Mid", name = "[PH] Evergreen Initiative Currency" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- THE WAR WITHIN
-    -- ══════════════════════════════════════════════════════════
     [2815] = { expansion = "TWW", name = "Resonance Crystals" },
     [3056] = { expansion = "TWW", name = "Kej" },
     [3226] = { expansion = "TWW", name = "Market Research" },
@@ -84,10 +53,6 @@ LarlenCurrencyTrackerCurrencies = {
     [2839] = { expansion = "TWW", name = "[DNT] Awakening Currency" },
     [3216] = { expansion = "TWW", name = "Bounty's Remnants" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- DRAGONFLIGHT
-    -- (common DF currencies — extend as needed)
-    -- ══════════════════════════════════════════════════════════
     [2003] = { expansion = "DF",  name = "Dragon Isles Supplies" },
     [2245] = { expansion = "DF",  name = "Elemental Overflow" },
     [2307] = { expansion = "DF",  name = "Valdrakken Accord" },
@@ -95,7 +60,7 @@ LarlenCurrencyTrackerCurrencies = {
     [2657] = { expansion = "DF",  name = "Resonance Crystals (DF)" },
     [2678] = { expansion = "DF",  name = "Aspects' Token of Merit" },
     [2792] = { expansion = "DF",  name = "Spores" },
-    [2032] = { expansion = "Misc", name = "Trader's Tender" },  -- Trading Post (cross-expansion)
+    [2032] = { expansion = "Misc", name = "Trader's Tender" },
     [2033] = { expansion = "DF",  name = "Blacksmithing Knowledge (DF)" },
     [2034] = { expansion = "DF",  name = "Leatherworking Knowledge (DF)" },
     [2035] = { expansion = "DF",  name = "Tailoring Knowledge (DF)" },
@@ -110,13 +75,10 @@ LarlenCurrencyTrackerCurrencies = {
     [2044] = { expansion = "DF",  name = "Skinning Knowledge (DF)" },
     [2048] = { expansion = "DF",  name = "Fishing Knowledge (DF)" },
     [2122] = { expansion = "DF",  name = "Whelpling's Shadowflame Crest Fragment" },
-    [2123] = { expansion = "DF",  name = "Drake's Shadowflame Crest Fragment" },
+    [2123] = { expansion = "PvP", name = "Bloody Tokens" },
     [2124] = { expansion = "DF",  name = "Wyrm's Shadowflame Crest Fragment" },
     [2125] = { expansion = "DF",  name = "Aspect's Shadowflame Crest Fragment" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- SHADOWLANDS
-    -- ══════════════════════════════════════════════════════════
     [1813] = { expansion = "SL",  name = "Reservoir Anima" },
     [1816] = { expansion = "SL",  name = "Stygia" },
     [1822] = { expansion = "SL",  name = "Renown" },
@@ -126,9 +88,6 @@ LarlenCurrencyTrackerCurrencies = {
     [1828] = { expansion = "SL",  name = "Tower Knowledge" },
     [1884] = { expansion = "SL",  name = "Attendant's Token of Merit" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- BATTLE FOR AZEROTH
-    -- ══════════════════════════════════════════════════════════
     [1553] = { expansion = "BFA", name = "War Resources" },
     [1560] = { expansion = "BFA", name = "Azerite" },
     [1580] = { expansion = "BFA", name = "Honorbound Service Medal" },
@@ -139,9 +98,6 @@ LarlenCurrencyTrackerCurrencies = {
     [1594] = { expansion = "BFA", name = "Seafarer's Dubloon" },
     [1533] = { expansion = "BFA", name = "Coalescing Visions" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- LEGION
-    -- ══════════════════════════════════════════════════════════
     [1171] = { expansion = "Leg", name = "Nethershard" },
     [1226] = { expansion = "Leg", name = "Veiled Argunite" },
     [1273] = { expansion = "Leg", name = "Wakening Essence" },
@@ -149,32 +105,20 @@ LarlenCurrencyTrackerCurrencies = {
     [1220] = { expansion = "Leg", name = "Echoes of Battle" },
     [1342] = { expansion = "Leg", name = "Legionfall War Supplies" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- WARLORDS OF DRAENOR
-    -- ══════════════════════════════════════════════════════════
     [823]  = { expansion = "WoD", name = "Apexis Crystal" },
     [824]  = { expansion = "WoD", name = "Garrison Resources" },
     [980]  = { expansion = "WoD", name = "Timewarped Badge (WoD)" },
     [1101] = { expansion = "WoD", name = "Seal of Broken Fate" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- MISTS OF PANDARIA
-    -- ══════════════════════════════════════════════════════════
     [697]  = { expansion = "MoP", name = "Valor" },
     [752]  = { expansion = "MoP", name = "Lesser Charm of Good Fortune" },
     [776]  = { expansion = "MoP", name = "Timeless Coin" },
     [777]  = { expansion = "MoP", name = "Elder Charm of Good Fortune" },
     [778]  = { expansion = "MoP", name = "Mogu Rune of Fate" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- CATACLYSM
-    -- ══════════════════════════════════════════════════════════
     [614]  = { expansion = "Cata", name = "Justice Points" },
     [615]  = { expansion = "Cata", name = "Conquest Points" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- WRATH OF THE LICH KING
-    -- ══════════════════════════════════════════════════════════
     [301]  = { expansion = "WotLK", name = "Emblem of Heroism" },
     [302]  = { expansion = "WotLK", name = "Emblem of Valor" },
     [341]  = { expansion = "WotLK", name = "Emblem of Conquest" },
@@ -182,36 +126,65 @@ LarlenCurrencyTrackerCurrencies = {
     [400]  = { expansion = "WotLK", name = "Emblem of Frost" },
     [416]  = { expansion = "WotLK", name = "Timewarped Badge (WotLK)" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- THE BURNING CRUSADE
-    -- ══════════════════════════════════════════════════════════
     [101]  = { expansion = "BC",  name = "Badge of Justice" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- PvP
-    -- ══════════════════════════════════════════════════════════
     [1792] = { expansion = "PvP", name = "Honor" },
     [1602] = { expansion = "PvP", name = "Conquest" },
     [1585] = { expansion = "PvP", name = "War Games" },
 
-    -- ══════════════════════════════════════════════════════════
-    -- MISCELLANEOUS / TIMEWALKING / EVENT
-    -- ══════════════════════════════════════════════════════════
     [1166] = { expansion = "Misc", name = "Timewarped Badge" },
     [515]  = { expansion = "Misc", name = "Darkmoon Prize Ticket" },
     [241]  = { expansion = "Misc", name = "Champion's Seal" },
+    [3028] = { expansion = "Delve", name = "Restored Coffer Key" },
+    [3310] = { expansion = "Delve", name = "Coffer Key Shards" },
+    [2803] = { expansion = "Delve", name = "Undercoin" },
+    [3309] = { expansion = "Misc", name = "Hellstone Shard" },
+    [3363] = { expansion = "Misc", name = "Community Coupons" },
 
 }
 
--- ──────────────────────────────────────────────────────────────
--- Helper: look up expansion data for a currency ID.
--- Returns the expansion table entry, or a Misc fallback.
--- ──────────────────────────────────────────────────────────────
-function LarlenCurrencyTrackerGetExpansion(currencyID)
+LarlenCurrencyTrackerHiddenCurrencyIDs = {
+    [3158] = true,
+    [3154] = true,
+    [3349] = true,
+}
+
+LarlenCurrencyTrackerNameExpansionOverrides = {
+    ["adventurer dawncrest"] = "Mid",
+    ["veteran dawncrest"] = "Mid",
+    ["champion dawncrest"] = "Mid",
+    ["hero dawncrest"] = "Mid",
+    ["myth dawncrest"] = "Mid",
+    ["dawnlight manaflux"] = "Mid",
+    ["radiant spark dust"] = "Mid",
+    ["coffer key shards"] = "Delve",
+    ["restored coffer key"] = "Delve",
+    ["undercoin"] = "Delve",
+}
+
+local function GetNameExpansionOverride(currencyName)
+    if type(currencyName) ~= "string" then return nil end
+    local key = currencyName:lower()
+    return LarlenCurrencyTrackerNameExpansionOverrides[key]
+end
+
+function LarlenCurrencyTrackerGetExpansionKey(currencyID, currencyName)
     local entry = LarlenCurrencyTrackerCurrencies[currencyID]
     if entry then
         local expKey = entry.expansion
-        return LarlenCurrencyTrackerExpansions[expKey] or LarlenCurrencyTrackerExpansions["Misc"]
+        if LarlenCurrencyTrackerExpansions[expKey] then
+            return expKey
+        end
+        return "Misc"
     end
-    return LarlenCurrencyTrackerExpansions["Misc"]
+    local override = GetNameExpansionOverride(currencyName)
+    if override and LarlenCurrencyTrackerExpansions[override] then
+        return override
+    end
+    return "Misc"
+end
+
+function LarlenCurrencyTrackerGetExpansion(currencyID, currencyName)
+    local expKey = LarlenCurrencyTrackerGetExpansionKey(currencyID, currencyName)
+    return LarlenCurrencyTrackerExpansions[expKey] or LarlenCurrencyTrackerExpansions["Misc"]
 end

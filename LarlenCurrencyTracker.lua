@@ -1,21 +1,12 @@
--- LarlenCurrencyTracker.lua
--- Main addon file: initialization, events, data collection
-
 local addonName, CT = ...
 _G["LarlenCurrencyTracker"] = CT
 
--- ============================================================
--- Addon Object (Ace3)
--- ============================================================
 local addon = LibStub("AceAddon-3.0"):NewAddon("LarlenCurrencyTracker",
     "AceConsole-3.0",
     "AceEvent-3.0"
 )
 CT.addon = addon
 
--- ============================================================
--- Default Settings
--- ============================================================
 local defaults = {
     profile = {
         display = {
@@ -42,17 +33,16 @@ local defaults = {
             showCloseButton   = true,
             showOptionsButton = true,
             reverseDirection  = false,
+            showCategories    = false,
             nameShorten       = 0,
             fontOutline       = "outline",
             locked            = false,
         },
         currencies = {},
+        categoryState = {},
     },
 }
 
--- ============================================================
--- Lifecycle
--- ============================================================
 function addon:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("LarlenCurrencyTrackerDB", defaults, "Default")
     self:RegisterChatCommand("lct", "SlashHandler")
@@ -81,9 +71,6 @@ function addon:OnDisable()
     CT.Display:Hide()
 end
 
--- ============================================================
--- Events
--- ============================================================
 function addon:OnBankOpened()
     CT.Display:OnBankOpened()
     CT.Display:Refresh(self.db)
@@ -106,7 +93,6 @@ function addon:OnVisibilityChanged()
     CT.Display:UpdateVisibility(self.db)
 end
 
--- Polling ticker for visibility — hooks are unreliable with ElvUI
 local _tickerRunning = false
 function addon:StartVisibilityTicker()
     if _tickerRunning then return end
@@ -127,42 +113,49 @@ function addon:OnCombatChanged()
     end
 end
 
--- ============================================================
--- Default-ON currency whitelist
--- ============================================================
 local DEFAULT_ON_CURRENCIES = {
-    -- Midnight
-    [3376] = true, -- Shard of Dundun
-    [3377] = true, -- Unalloyed Abundance
-    [3385] = true, -- Luminous Dust
-    [3316] = true, -- Voidlight Marl
-    [3379] = true, -- Brimming Arcana
-    [3256] = true, -- Artisan Alchemist's Moxie
-    [3400] = true, -- Uncontaminated Void Sample
-    [3260] = true, -- Artisan Herbalist's Moxie
-    [3264] = true, -- Artisan Miner's Moxie
-    [3392] = true, -- Remnant of Anguish
-    [3319] = true, -- Twilight's Blade Insignia
-    [3265] = true, -- Artisan Skinner's Moxie
-    [3258] = true, -- Artisan Enchanter's Moxie
-    [3266] = true, -- Artisan Tailor's Moxie
-    [3257] = true, -- Artisan Blacksmith's Moxie
-    [3263] = true, -- Artisan Leatherworker's Moxie
-    [3262] = true, -- Artisan Jewelcrafter's Moxie
-    [3261] = true, -- Artisan Scribe's Moxie
-    [3259] = true, -- Artisan Engineer's Moxie
-    [3158] = true, -- Midnight Mining Knowledge
-    [3154] = true, -- Midnight Herbalism Knowledge
-    [3373] = true, -- Angler Pearls
-    [3352] = true, -- Party Favor
-    [3349] = true, -- [PH] Evergreen Initiative Currency
-    [2032] = true, -- Trader's Tender
-    [1166] = true, -- Timewarped Badge
+    [3376] = true,
+    [3377] = true,
+    [3385] = true,
+    [3316] = true,
+    [3379] = true,
+    [3256] = true,
+    [3400] = true,
+    [3260] = true,
+    [3264] = true,
+    [3392] = true,
+    [3319] = true,
+    [3265] = true,
+    [3258] = true,
+    [3266] = true,
+    [3257] = true,
+    [3263] = true,
+    [3262] = true,
+    [3261] = true,
+    [3259] = true,
+    [3373] = true,
+    [3352] = true,
+    [2032] = true,
+    [1166] = true,
 }
 
--- ============================================================
--- Currency Discovery
--- ============================================================
+local WARBAND_CURRENCIES = {
+    [2032] = true,
+    [3309] = true,
+    [3363] = true,
+}
+
+function CT:IsCurrencyDiscoveredForDisplay(currencyID, info)
+    if not info then return false end
+    if info.discovered then return true end
+    if WARBAND_CURRENCIES[currencyID] then return true end
+    local quantity = tonumber(info.quantity) or 0
+    if quantity > 0 then return true end
+    local totalEarned = tonumber(info.totalEarned) or 0
+    if totalEarned > 0 then return true end
+    return false
+end
+
 function addon:DiscoverCurrencies()
     local numCurrencies = C_CurrencyInfo.GetCurrencyListSize()
     for i = 1, numCurrencies do
@@ -177,9 +170,6 @@ function addon:DiscoverCurrencies()
     end
 end
 
--- ============================================================
--- Data: collect all enabled currency rows
--- ============================================================
 function CT:GetRows(db)
     local rows = {}
     local cfg  = db.profile
@@ -191,14 +181,15 @@ function CT:GetRows(db)
         if entry and not entry.isHeader and entry.currencyID then
             local id  = entry.currencyID
             local key = tostring(id)
-            if cfg.currencies[key] == true then
+            if (not LarlenCurrencyTrackerHiddenCurrencyIDs or not LarlenCurrencyTrackerHiddenCurrencyIDs[id]) and cfg.currencies[key] == true then
                 local info = C_CurrencyInfo.GetCurrencyInfo(id)
-                if info and info.discovered then
+                if CT:IsCurrencyDiscoveredForDisplay(id, info) then
                     local count = info.quantity
                     local max   = info.maxQuantity
                     if id == 1822 then count = count + 1; max = max + 1 end
 
-                    local expData   = LarlenCurrencyTrackerGetExpansion(id)
+                    local expKey    = LarlenCurrencyTrackerGetExpansionKey(id, info.name)
+                    local expData   = LarlenCurrencyTrackerExpansions[expKey] or LarlenCurrencyTrackerExpansions["Misc"]
                     local catLetter = expData and expData.letter or "L"
 
                     local row = {
@@ -209,6 +200,7 @@ function CT:GetRows(db)
                         max       = max,
                         color     = CT:QualityColor(info.quality),
                         type      = "currency",
+                        expKey    = expKey,
                         expansion = expData and expData.label or "Miscellaneous",
                         catLetter = catLetter,
                     }
@@ -229,9 +221,6 @@ function CT:GetRows(db)
     return rows
 end
 
--- ============================================================
--- Helpers
--- ============================================================
 function CT:QualityColor(quality)
     if not quality then return "ffffffff" end
     local r, g, b = GetItemQualityColor(quality)
@@ -256,11 +245,6 @@ function CT:BuildSortIndex(row, disp, catLetter)
     end
 end
 
--- ============================================================
--- Name shortening
--- mode 1 = first 3 letters per word  (Sha of Du)
--- mode 2 = initials only             (SoD)
--- ============================================================
 local SKIP_WORDS = { ["of"] = true, ["the"] = true, ["a"] = true, ["an"] = true }
 
 function CT:ShortenName(name, mode)
@@ -322,9 +306,6 @@ function CT:FormatCount(count, max, db)
     return c
 end
 
--- ============================================================
--- Slash command
--- ============================================================
 function addon:SlashHandler(input)
     input = input and input:trim():lower() or ""
     if input == "options" or input == "config" or input == "opt" then
@@ -348,9 +329,9 @@ function addon:SlashHandler(input)
         if attachTo == "SCREEN" then
             CT.Display:Show()
         elseif attachTo == "BAGS" then
-            print("|cffffa500Larlen Currency Tracker|r: Window is attached to your |cffffcc00Bags|r — it shows automatically when you open them.")
+            print("|cffffa500Larlen Currency Tracker|r: Window is attached to your |cffffcc00Bags|r - it shows automatically when you open them.")
         elseif attachTo == "CHARACTER" then
-            print("|cffffa500Larlen Currency Tracker|r: Window is attached to the |cffffcc00Character Sheet|r — it shows automatically when you open it.")
+            print("|cffffa500Larlen Currency Tracker|r: Window is attached to the |cffffcc00Character Sheet|r - it shows automatically when you open it.")
         end
     end
 end

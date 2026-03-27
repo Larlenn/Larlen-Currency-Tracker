@@ -12,7 +12,7 @@ We took the core idea of the original tracker and built it into a fully fleshed-
 
 Here is what you can expect:
 * **Display & Attachment:** Attach to your Bags, Character Sheet, or float Always Visible anywhere on screen. The frame automatically shows and hides with the panel it's attached to. You can drag to reposition, lock the frame when you're happy with the placement, and even reverse the row direction for a right-to-left layout.
-* **Currencies:** Tracks all currencies your character has discovered, organized by expansion from The War Within and Midnight down to Vanilla. *Midnight currencies and Trader's Tender are enabled by default*—everything else is completely opt-in. Easily toggle individual currencies on or off in the options.
+* **Currencies:** Tracks all currencies your character has discovered, organized by expansion from The War Within and Midnight down to Vanilla. *Midnight currencies and Trader's Tender are enabled by default*-everything else is completely opt-in. Easily toggle individual currencies on or off in the options.
 * **Text & Appearance:** Color the text by item quality and shorten names to initials or first letters to save space. You have full control over adjustable icon size, row spacing, frame opacity, and background styling.
 * **Sorting:** Sort your list by name, amount, or ID. You can also group them by expansion or sort across all of your currencies together.
 
